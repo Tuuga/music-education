@@ -5,6 +5,7 @@ using CSharpSynth.Effects;
 using CSharpSynth.Sequencer;
 using CSharpSynth.Synthesis;
 using CSharpSynth.Midi;
+using UnityEngine.UI;
 
 [RequireComponent (typeof(AudioSource))]
 public class UnitySynthTest : MonoBehaviour
@@ -27,8 +28,16 @@ public class UnitySynthTest : MonoBehaviour
 	private float sliderValue = 1.0f;
 	private float maxSliderValue = 127.0f;
 
+	bool[] playNote = new bool[13];
+	bool[] stopNote = new bool[13];
+
+	int playNoteIndex;
+	int stopNoteIndex;
+
 	int[] notesInMidi = {62, 63, 65, 67, 69, 70, 72, 74, 75, 77, 79, 81, 82};
 	string[] midiInString = { "D4", "D#4", "F4", "G4", "A4", "A#4", "C5", "D5", "D#5", "F5", "G5", "A5", "A#5"};
+	//string[] midiInString = {"C4", "C#4", "D4", "D#4", "F4", "F#4", "G4", "G#4", "A4", "A#4", "B4", "C5", "C5#", "D5", "D#5", "E5", "F5", "F5#", "G5", "G#5", "A5", "A#5", "B5"};
+	GameObject[] keys;
 	public AudioSource[] midiSamples;
 	
 	// Awake is called when the script instance
@@ -45,6 +54,8 @@ public class UnitySynthTest : MonoBehaviour
 		//These will be fired by the midiSequencer when a song plays. Check the console for messages
 		midiSequencer.NoteOnEvent += new MidiSequencer.NoteOnEventHandler (MidiNoteOnHandler);
 		midiSequencer.NoteOffEvent += new MidiSequencer.NoteOffEventHandler (MidiNoteOffHandler);
+
+		keys = GameObject.FindGameObjectsWithTag("Key");
 	}
 	
 	// Start is called just before any of the
@@ -110,11 +121,37 @@ public class UnitySynthTest : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.K))
             midiStreamSynthesizer.NoteOn (1, midiNote + 12, midiNoteVolume, midiInstrument);
         if (Input.GetKeyUp(KeyCode.K))
-            midiStreamSynthesizer.NoteOff (1, midiNote + 12);		
-		
-		
+            midiStreamSynthesizer.NoteOff (1, midiNote + 12);
+
+		// Plays note samples
+		for (int i = 0; i < midiSamples.Length; i++) {
+		//for (int i = 0; i < midiInString.Length; i++) {
+			
+			for (int j = 0; j < keys.Length; j++) {
+				if (stopNote[i] && keys[j].name == midiInString[i]) {
+					// white or black
+					keys[j].GetComponent<Image>().color = Color.white;
+				}
+
+				if (playNote[i] && keys[j].name == midiInString[i]) {
+					// yellow
+					keys[j].GetComponent<Image>().color = Color.yellow;
+				}
+			}
+
+			if (stopNote[i]) {
+				midiSamples[i].Stop();
+				stopNote[i] = false;
+			}
+
+			if (playNote[i]) {
+				midiSamples[i].Play();
+				playNote[i] = false;
+			}
+			
+		}
 	}
-	
+
 	// OnGUI is called for rendering and handling
 	// GUI events.
 	void OnGUI ()
@@ -190,21 +227,25 @@ public class UnitySynthTest : MonoBehaviour
 
 	public void MidiNoteOnHandler (int channel, int note, int velocity)
 	{
+		print(note);
 		//Debug.Log ("NoteOn: " + note.ToString () + " Velocity: " + velocity.ToString ());
-		//print(note + 12);
-		PlayNote(note);
+		for (int i = 0; i < notesInMidi.Length; i++) {
+			if (notesInMidi[i] == note + 12) {
+				print(midiInString[i]);
+				playNoteIndex = i;
+				playNote[i] = true;
+			}
+		}
 	}
 	
 	public void MidiNoteOffHandler (int channel, int note)
 	{
 		//Debug.Log ("NoteOff: " + note.ToString ());
-	}
-
-	void PlayNote (int note) {
 		for (int i = 0; i < notesInMidi.Length; i++) {
 			if (notesInMidi[i] == note + 12) {
-				print(midiInString[i]);
-				midiSamples[i].Play();
+				//print(midiInString[i]);
+				stopNoteIndex = i;
+				stopNote[i] = true;
 			}
 		}
 	}
