@@ -14,7 +14,7 @@ public class MidiReader : MonoBehaviour {
 		_rawMidiData = File.ReadAllBytes(path);
 		_midiBytes = new List<byte>(_rawMidiData);
 
-		File.WriteAllBytes("Assets/Resources/Midis/Song2text.txt", _rawMidiData);
+		File.WriteAllBytes("Assets/Resources/Midis/Song3text.txt", _rawMidiData);
 
 		print (CheckMidiTag(_rawMidiData));
 	}

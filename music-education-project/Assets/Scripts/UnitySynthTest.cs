@@ -28,6 +28,8 @@ public class UnitySynthTest : MonoBehaviour
 	private float sliderValue = 1.0f;
 	private float maxSliderValue = 127.0f;
 
+
+	// Tuugas variables
 	bool[] playNote = new bool[13];
 	bool[] stopNote = new bool[13];
 
@@ -130,7 +132,11 @@ public class UnitySynthTest : MonoBehaviour
 			for (int j = 0; j < keys.Length; j++) {
 				if (stopNote[i] && keys[j].name == midiInString[i]) {
 					// white or black
-					keys[j].GetComponent<Image>().color = Color.white;
+					if (keys[j].name.Contains("#")) {
+						keys[j].GetComponent<Image>().color = Color.black;
+					} else {
+						keys[j].GetComponent<Image>().color = Color.white;
+					}
 				}
 
 				if (playNote[i] && keys[j].name == midiInString[i]) {
@@ -139,13 +145,14 @@ public class UnitySynthTest : MonoBehaviour
 				}
 			}
 
+			
 			if (stopNote[i]) {
-				midiSamples[i].Stop();
+				//midiSamples[i].Stop();
 				stopNote[i] = false;
 			}
 
 			if (playNote[i]) {
-				midiSamples[i].Play();
+				//midiSamples[i].Play();
 				playNote[i] = false;
 			}
 			
@@ -227,11 +234,12 @@ public class UnitySynthTest : MonoBehaviour
 
 	public void MidiNoteOnHandler (int channel, int note, int velocity)
 	{
-		print(note);
+		//print(note);
 		//Debug.Log ("NoteOn: " + note.ToString () + " Velocity: " + velocity.ToString ());
 		for (int i = 0; i < notesInMidi.Length; i++) {
-			if (notesInMidi[i] == note + 12) {
-				print(midiInString[i]);
+			//if (notesInMidi[i] == note + 12) {
+			if (notesInMidi[i] == note) {
+				//print(midiInString[i]);
 				playNoteIndex = i;
 				playNote[i] = true;
 			}
@@ -242,11 +250,40 @@ public class UnitySynthTest : MonoBehaviour
 	{
 		//Debug.Log ("NoteOff: " + note.ToString ());
 		for (int i = 0; i < notesInMidi.Length; i++) {
-			if (notesInMidi[i] == note + 12) {
+			//if (notesInMidi[i] == note + 12) {
+			if (notesInMidi[i] == note) {
 				//print(midiInString[i]);
 				stopNoteIndex = i;
 				stopNote[i] = true;
 			}
 		}
+	}
+
+	public void OnNote (int note) {
+		midiStreamSynthesizer.NoteOn(1, note, midiNoteVolume, midiInstrument);
+		MidiNoteOnHandler(1, note, midiNoteVolume);
+		//midiSamples[playNoteIndex].Play();
+		
+		for (int i = 0; i < notesInMidi.Length; i++) {
+			if (notesInMidi[i] == note) {
+				midiSamples[i].Play();
+			}
+		}
+		
+		StartCoroutine(StopNote(note));
+	}
+
+	IEnumerator StopNote (int note) {
+		yield return new WaitForSeconds(0.5f);
+		midiStreamSynthesizer.NoteOff(1, note);
+		MidiNoteOffHandler(1, note);
+		//midiSamples[stopNoteIndex].Stop();
+		
+		for (int i = 0; i < notesInMidi.Length; i++) {
+			if (notesInMidi[i] == note) {
+				midiSamples[i].Stop();
+			}
+		}
+		
 	}
 }
