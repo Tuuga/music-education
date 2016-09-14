@@ -26,6 +26,10 @@ public class UnitySynthTest : MonoBehaviour
 	
 	private float sliderValue = 1.0f;
 	private float maxSliderValue = 127.0f;
+
+	int[] notesInMidi = {62, 63, 65, 67, 69, 70, 72, 74, 75, 77, 79, 81, 82};
+	string[] midiInString = { "D4", "D#4", "F4", "G4", "A4", "A#4", "C5", "D5", "D#5", "F5", "G5", "A5", "A#5"};
+	public AudioSource[] midiSamples;
 	
 	// Awake is called when the script instance
 	// is being loaded.
@@ -40,8 +44,7 @@ public class UnitySynthTest : MonoBehaviour
 		midiSequencer.LoadMidi (midiFilePath, false);
 		//These will be fired by the midiSequencer when a song plays. Check the console for messages
 		midiSequencer.NoteOnEvent += new MidiSequencer.NoteOnEventHandler (MidiNoteOnHandler);
-		midiSequencer.NoteOffEvent += new MidiSequencer.NoteOffEventHandler (MidiNoteOffHandler);	
-		
+		midiSequencer.NoteOffEvent += new MidiSequencer.NoteOffEventHandler (MidiNoteOffHandler);
 	}
 	
 	// Start is called just before any of the
@@ -179,21 +182,30 @@ public class UnitySynthTest : MonoBehaviour
 
 		//This uses the Unity specific float method we added to get the buffer
 		midiStreamSynthesizer.GetNext (sampleBuffer);
-			
+		
 		for (int i = 0; i < data.Length; i++) {
-			data [i] = sampleBuffer [i] * gain;
+			//data [i] = sampleBuffer [i] * gain;
 		}
 	}
 
 	public void MidiNoteOnHandler (int channel, int note, int velocity)
 	{
-		Debug.Log ("NoteOn: " + note.ToString () + " Velocity: " + velocity.ToString ());
+		//Debug.Log ("NoteOn: " + note.ToString () + " Velocity: " + velocity.ToString ());
+		//print(note + 12);
+		PlayNote(note);
 	}
 	
 	public void MidiNoteOffHandler (int channel, int note)
 	{
-		Debug.Log ("NoteOff: " + note.ToString ());
+		//Debug.Log ("NoteOff: " + note.ToString ());
 	}
 
-	
+	void PlayNote (int note) {
+		for (int i = 0; i < notesInMidi.Length; i++) {
+			if (notesInMidi[i] == note + 12) {
+				print(midiInString[i]);
+				midiSamples[i].Play();
+			}
+		}
+	}
 }
