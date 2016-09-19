@@ -40,6 +40,9 @@ public class UnitySynthTest : MonoBehaviour {
 	string[] midiInString = { "C4", "C#4", "D4", "D#4", "E4", "F4", "F#4", "G4", "G#4", "A4", "A#4", "B4", "C5", "C5#", "D5", "D#5", "E5", "F5", "F#5", "G5", "G#5", "A5", "A#5", "B5" };
 	public GameObject[] keys;
 	public AudioSource[] midiSamples;
+	public string[] midiSongs;
+	public Text currentSong;
+	int songsIndex;
 
 	void Awake() {
 		midiStreamSynthesizer = new StreamSynthesizer(44100, 2, bufferSize, 40);
@@ -52,6 +55,7 @@ public class UnitySynthTest : MonoBehaviour {
 		//These will be fired by the midiSequencer when a song plays. Check the console for messages
 		midiSequencer.NoteOnEvent += new MidiSequencer.NoteOnEventHandler(MidiNoteOnHandler);
 		midiSequencer.NoteOffEvent += new MidiSequencer.NoteOffEventHandler(MidiNoteOffHandler);
+		ChangeSong(0);
 	}
 
 	void Update() {
@@ -181,5 +185,14 @@ public class UnitySynthTest : MonoBehaviour {
 
 	public void ToggleUseSamples () {
 		useSamples = !useSamples;
+	}
+
+	public void ChangeSong (int n) {
+		songsIndex += n;
+		songsIndex = Mathf.Clamp(songsIndex, 0, midiSongs.Length - 1);
+		midiFilePath = "Midis/" + midiSongs[songsIndex];
+		currentSong.text = midiSongs[songsIndex];
+
+		StopSong();
 	}
 }
