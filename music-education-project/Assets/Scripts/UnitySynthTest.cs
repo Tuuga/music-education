@@ -48,7 +48,7 @@ public class UnitySynthTest : MonoBehaviour {
 		midiStreamSynthesizer.LoadBank(bankFilePath);
 
 		midiSequencer = new MidiSequencer(midiStreamSynthesizer);
-		midiSequencer.LoadMidi(midiFilePath, false);
+		//midiSequencer.LoadMidi(midiFilePath, false);
 		//These will be fired by the midiSequencer when a song plays. Check the console for messages
 		midiSequencer.NoteOnEvent += new MidiSequencer.NoteOnEventHandler(MidiNoteOnHandler);
 		midiSequencer.NoteOffEvent += new MidiSequencer.NoteOffEventHandler(MidiNoteOffHandler);
@@ -165,11 +165,18 @@ public class UnitySynthTest : MonoBehaviour {
 	}
 
 	public void PlaySong() {
+		midiSequencer.LoadMidi(midiFilePath, false);
 		midiSequencer.Play();
 	}
 
 	public void StopSong() {
 		midiSequencer.Stop(true);
+
+		for (int i = 0; i < stopNote.Length; i++) {
+			stopNote[i] = true;
+			playNote[i] = false;
+		}
+
 	}
 
 	public void ToggleUseSamples () {

@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 4d8e269f13012e24fa561943d3f05796
+timeCreated: 1474277402
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - midiFile: {fileID: 4900000, guid: e7f4be9c9473c284d9866854670e7608, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
