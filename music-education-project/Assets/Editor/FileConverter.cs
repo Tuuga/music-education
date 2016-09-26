@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections;
+using System.Collections.Generic;
 
 [ExecuteInEditMode]
 public class FileConverter : EditorWindow {
 
-	DefaultAsset midiFile;
-	string newFileName;
+	List<DefaultAsset> files;
 	byte[] _rawMidiData;
 
 	[MenuItem("Window/File Converter")]
@@ -16,14 +16,22 @@ public class FileConverter : EditorWindow {
 	}
 
 	void OnGUI() {
-		midiFile = (DefaultAsset)EditorGUILayout.ObjectField(midiFile, typeof(DefaultAsset), false);
-		newFileName = EditorGUILayout.TextField("New file name", newFileName);
 
 		if (GUILayout.Button("Convert File")) {
-			string assetPath = AssetDatabase.GetAssetPath(midiFile);
-			_rawMidiData = System.IO.File.ReadAllBytes(assetPath);
-			string newPath = "Assets/Resources/Midis/" + newFileName + ".txt";
-			System.IO.File.WriteAllBytes(newPath, _rawMidiData);
+
+			List<string> allFilePaths = new List<string>(System.IO.Directory.GetFiles("Assets/Resources/Midis/"));
+			List<string> midiPaths = new List<string>();
+
+			for (int i = 0; i < allFilePaths.Count; i++) {
+				if (allFilePaths[i].EndsWith(".mid")) {
+					midiPaths.Add(allFilePaths[i]);
+				}
+			}
+
+			foreach (string s in midiPaths) {
+				_rawMidiData = System.IO.File.ReadAllBytes(s);
+				System.IO.File.WriteAllBytes(s + ".txt", _rawMidiData);
+			}
 			AssetDatabase.Refresh();
 		}
 	}

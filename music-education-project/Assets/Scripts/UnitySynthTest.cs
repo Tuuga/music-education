@@ -30,6 +30,12 @@ public class UnitySynthTest : MonoBehaviour {
 
 
 	// Tuugas variables
+	public GameObject noteBlock;
+	public float scaleSpeed;
+
+	Dictionary<int, GameObject> currentNotesPlaying = new Dictionary<int, GameObject>();
+
+	bool[] spawnNotes = new bool[128];
 	bool[] playNote = new bool[24];
 	bool[] stopNote = new bool[24];
 
@@ -59,6 +65,20 @@ public class UnitySynthTest : MonoBehaviour {
 	}
 
 	void Update() {
+
+		for (int i = 0; i < spawnNotes.Length; i++) {
+			if (spawnNotes[i]) {
+				if (!currentNotesPlaying.ContainsKey(i)) {
+					GameObject blockIns = (GameObject)Instantiate(noteBlock, new Vector3(i, 0, 0), Quaternion.identity);
+					currentNotesPlaying.Add(i, blockIns);
+				}				
+				spawnNotes[i] = false;
+			}
+		}
+
+		foreach (GameObject g in currentNotesPlaying.Values) {
+			g.transform.localScale += new Vector3(0, 0, Time.deltaTime * scaleSpeed);
+		}
 
 		// Plays note samples
 		for (int i = 0; i < midiSamples.Length; i++) {
@@ -129,6 +149,7 @@ public class UnitySynthTest : MonoBehaviour {
 				playNote[i] = true;
 			}
 		}
+		spawnNotes[note] = true;
 	}
 
 	public void MidiNoteOffHandler(int channel, int note) {
@@ -138,6 +159,7 @@ public class UnitySynthTest : MonoBehaviour {
 				stopNote[i] = true;
 			}
 		}
+		currentNotesPlaying.Remove(note);
 	}
 
 	// Called from UI buttons
