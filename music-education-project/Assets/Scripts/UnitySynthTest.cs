@@ -30,7 +30,10 @@ public class UnitySynthTest : MonoBehaviour {
 
 
 	// Tuugas variables
+	public Vector3 visualOffset;
+	public Vector3 visualScale;
 	public GameObject noteBlock;
+	public GameObject canvas;
 	public float scaleSpeed;
 
 	Dictionary<int, GameObject> currentNotesPlaying = new Dictionary<int, GameObject>();
@@ -69,15 +72,19 @@ public class UnitySynthTest : MonoBehaviour {
 		for (int i = 0; i < spawnNotes.Length; i++) {
 			if (spawnNotes[i]) {
 				if (!currentNotesPlaying.ContainsKey(i)) {
-					GameObject blockIns = (GameObject)Instantiate(noteBlock, new Vector3(i, 0, 0), Quaternion.identity);
-					currentNotesPlaying.Add(i, blockIns);
+					// Spawn only if note has ui elemets (octave 4 and 5) (DEBUG)
+					if (i >= 60 && i <= 83) {
+						GameObject blockIns = (GameObject)Instantiate(noteBlock, new Vector3(i * visualScale.x + visualOffset.x, visualOffset.y * visualScale.y, visualOffset.z * visualScale.z), Quaternion.identity);
+						blockIns.transform.SetParent(canvas.transform);
+						currentNotesPlaying.Add(i, blockIns);
+					}
 				}				
 				spawnNotes[i] = false;
 			}
 		}
 
 		foreach (GameObject g in currentNotesPlaying.Values) {
-			g.transform.localScale += new Vector3(0, 0, Time.deltaTime * scaleSpeed);
+			g.transform.localScale += new Vector3(0, Time.deltaTime * scaleSpeed, 0);
 		}
 
 		// Plays note samples
@@ -149,7 +156,7 @@ public class UnitySynthTest : MonoBehaviour {
 				playNote[i] = true;
 			}
 		}
-		spawnNotes[note] = true;
+		spawnNotes[note] = true;		
 	}
 
 	public void MidiNoteOffHandler(int channel, int note) {
@@ -172,7 +179,7 @@ public class UnitySynthTest : MonoBehaviour {
 				midiSamples[i].Play();
 			}
 		}
-
+		
 		StartCoroutine(StopNote(note));
 	}
 
@@ -188,6 +195,15 @@ public class UnitySynthTest : MonoBehaviour {
 				midiSamples[i].Stop();
 			}
 		}
+	}
+
+	IEnumerator PrintLate(int note) {
+		yield return new WaitForSeconds(5f);
+		print(note);
+	}
+
+	void OwnPrint () {
+		print("-");
 	}
 
 	public void PlaySong() {

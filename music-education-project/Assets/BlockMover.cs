@@ -6,6 +6,6 @@ public class BlockMover : MonoBehaviour {
 	public float speed;
 
 	void Update () {
-		transform.position += -transform.forward * speed * Time.deltaTime;
+		transform.position += Vector3.down * speed * Time.deltaTime;
 	}
 }
