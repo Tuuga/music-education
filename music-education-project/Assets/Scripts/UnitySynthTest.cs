@@ -6,6 +6,7 @@ using CSharpSynth.Sequencer;
 using CSharpSynth.Synthesis;
 using CSharpSynth.Midi;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(AudioSource))]
 public class UnitySynthTest : MonoBehaviour {
@@ -20,36 +21,26 @@ public class UnitySynthTest : MonoBehaviour {
 	public int midiNoteVolume = 100;
 	public int midiInstrument = 1;
 	//Private 
-	private float[] sampleBuffer;
-	private float gain = 1f;
-	private MidiSequencer midiSequencer;
-	private StreamSynthesizer midiStreamSynthesizer;
+	float[] sampleBuffer;
+	float gain = 1f;
+	MidiSequencer midiSequencer;
+	StreamSynthesizer midiStreamSynthesizer;
 
 	private float sliderValue = 1.0f;
 	private float maxSliderValue = 127.0f;
 
 
 	// Tuugas variables
-	public Vector3 visualOffset;
-	public Vector3 visualScale;
-	public GameObject noteBlock;
-	public GameObject canvas;
-	public float scaleSpeed;
+	public Canvas canvas;
+	GraphicRaycaster caster;
 
-	Dictionary<int, GameObject> currentNotesPlaying = new Dictionary<int, GameObject>();
+	bool[] playNote = new bool[127];
+	bool[] stopNote = new bool[127];
 
-	bool[] spawnNotes = new bool[128];
-	bool[] playNote = new bool[24];
-	bool[] stopNote = new bool[24];
-
-	int playNoteIndex;
-	int stopNoteIndex;
-
-	int[] notesInMidi = { 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83 };
-	string[] midiInString = { "C4", "C#4", "D4", "D#4", "E4", "F4", "F#4", "G4", "G#4", "A4", "A#4", "B4", "C5", "C5#", "D5", "D#5", "E5", "F5", "F#5", "G5", "G#5", "A5", "A#5", "B5" };
-	public GameObject[] keys;
-	public AudioSource[] midiSamples;
+	public GameObject[] keys = new GameObject[127];
+	public AudioSource[] midiSamples = new AudioSource[127];
 	public string[] midiSongs;
+
 	public Text currentSong;
 	int songsIndex;
 
@@ -60,36 +51,29 @@ public class UnitySynthTest : MonoBehaviour {
 		midiStreamSynthesizer.LoadBank(bankFilePath);
 
 		midiSequencer = new MidiSequencer(midiStreamSynthesizer);
-		//midiSequencer.LoadMidi(midiFilePath, false);
-		//These will be fired by the midiSequencer when a song plays. Check the console for messages
 		midiSequencer.NoteOnEvent += new MidiSequencer.NoteOnEventHandler(MidiNoteOnHandler);
 		midiSequencer.NoteOffEvent += new MidiSequencer.NoteOffEventHandler(MidiNoteOffHandler);
 		ChangeSong(0);
 	}
 
+	void Start () {
+		caster = canvas.GetComponent<GraphicRaycaster>();
+	}
+
 	void Update() {
 
-		for (int i = 0; i < spawnNotes.Length; i++) {
-			if (spawnNotes[i]) {
-				if (!currentNotesPlaying.ContainsKey(i)) {
-					// Spawn only if note has ui elemets (octave 4 and 5) (DEBUG)
-					if (i >= 60 && i <= 83) {
-						GameObject blockIns = (GameObject)Instantiate(noteBlock, new Vector3(i * visualScale.x + visualOffset.x, visualOffset.y * visualScale.y, visualOffset.z * visualScale.z), Quaternion.identity);
-						blockIns.transform.SetParent(canvas.transform);
-						currentNotesPlaying.Add(i, blockIns);
-					}
-				}				
-				spawnNotes[i] = false;
-			}
-		}
+		// RAYCASTING
 
-		foreach (GameObject g in currentNotesPlaying.Values) {
-			g.transform.localScale += new Vector3(0, Time.deltaTime * scaleSpeed, 0);
-		}
+		// https://www.google.fi/search?q=EventSystem.current.RaycastAll&rlz=1C1CHZL_enFI703FI703&oq=EventSystem.current.RaycastAll&aqs=chrome..69i57.355j0j4&sourceid=chrome&ie=UTF-8
+		//if (EventSystem.current.RaycastAll( ) {
 
-		// Plays note samples
+		//}
+
 		for (int i = 0; i < midiSamples.Length; i++) {
-			if (stopNote[i]) {
+
+			if (stopNote[i] && keys[i] != null) {
+				stopNote[i] = false;
+
 				if (keys[i].name.Contains("#")) {
 					// turns the note black
 					keys[i].GetComponent<Image>().color = Color.black;
@@ -99,43 +83,16 @@ public class UnitySynthTest : MonoBehaviour {
 				}
 			}
 
-			if (playNote[i]) {
+			if (playNote[i] && keys[i] != null) {
+				playNote[i] = false;
 				// turns the note yellow
 				keys[i].GetComponent<Image>().color = Color.yellow;
-			}
-
-			// Stops the note sample
-			if (stopNote[i]) {
-				if (useSamples) {
-					midiSamples[i].Stop();
-				}
-				stopNote[i] = false;
-			}
-
-			// Plays the note sample
-			if (playNote[i]) {
-				if (useSamples) {
-					midiSamples[i].Play();
-				}
-				playNote[i] = false;
 			}
 		}
 	}
 
 	// See http://unity3d.com/support/documentation/ScriptReference/MonoBehaviour.OnAudioFilterRead.html for reference code
-	//	If OnAudioFilterRead is implemented, Unity will insert a custom filter into the audio DSP chain.
-	//
-	//	The filter is inserted in the same order as the MonoBehaviour script is shown in the inspector. 	
-	//	OnAudioFilterRead is called everytime a chunk of audio is routed thru the filter (this happens frequently, every ~20ms depending on the samplerate and platform). 
-	//	The audio data is an array of floats ranging from [-1.0f;1.0f] and contains audio from the previous filter in the chain or the AudioClip on the AudioSource. 
-	//	If this is the first filter in the chain and a clip isn't attached to the audio source this filter will be 'played'. 
-	//	That way you can use the filter as the audio clip, procedurally generating audio.
-	//
-	//	If OnAudioFilterRead is implemented a VU meter will show up in the inspector showing the outgoing samples level. 
-	//	The process time of the filter is also measured and the spent milliseconds will show up next to the VU Meter 
-	//	(it turns red if the filter is taking up too much time, so the mixer will starv audio data). 
-	//	Also note, that OnAudioFilterRead is called on a different thread from the main thread (namely the audio thread) 
-	//	so calling into many Unity functions from this function is not allowed ( a warning will show up ). 	
+
 	private void OnAudioFilterRead(float[] data, int channels) {
 
 		//This uses the Unity specific float method we added to get the buffer
@@ -150,23 +107,11 @@ public class UnitySynthTest : MonoBehaviour {
 	}
 
 	public void MidiNoteOnHandler(int channel, int note, int velocity) {
-		for (int i = 0; i < notesInMidi.Length; i++) {
-			if (notesInMidi[i] == note) {
-				playNoteIndex = i;
-				playNote[i] = true;
-			}
-		}
-		spawnNotes[note] = true;		
+		playNote[note] = true;	
 	}
 
 	public void MidiNoteOffHandler(int channel, int note) {
-		for (int i = 0; i < notesInMidi.Length; i++) {
-			if (notesInMidi[i] == note) {
-				stopNoteIndex = i;
-				stopNote[i] = true;
-			}
-		}
-		currentNotesPlaying.Remove(note);
+		stopNote[note] = true;
 	}
 
 	// Called from UI buttons
@@ -174,11 +119,7 @@ public class UnitySynthTest : MonoBehaviour {
 		midiStreamSynthesizer.NoteOn(1, note, midiNoteVolume, midiInstrument);
 		MidiNoteOnHandler(1, note, midiNoteVolume);
 
-		for (int i = 0; i < notesInMidi.Length; i++) {
-			if (notesInMidi[i] == note) {
-				midiSamples[i].Play();
-			}
-		}
+		midiSamples[note].Play();
 		
 		StartCoroutine(StopNote(note));
 	}
@@ -190,20 +131,12 @@ public class UnitySynthTest : MonoBehaviour {
 		midiStreamSynthesizer.NoteOff(1, note);
 		MidiNoteOffHandler(1, note);
 
-		for (int i = 0; i < notesInMidi.Length; i++) {
-			if (notesInMidi[i] == note) {
-				midiSamples[i].Stop();
-			}
-		}
+		midiSamples[note].Stop();
 	}
 
 	IEnumerator PrintLate(int note) {
 		yield return new WaitForSeconds(5f);
 		print(note);
-	}
-
-	void OwnPrint () {
-		print("-");
 	}
 
 	public void PlaySong() {
@@ -218,7 +151,6 @@ public class UnitySynthTest : MonoBehaviour {
 			stopNote[i] = true;
 			playNote[i] = false;
 		}
-
 	}
 
 	public void ToggleUseSamples () {
