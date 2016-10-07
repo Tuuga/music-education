@@ -14,8 +14,8 @@ public class UnitySynthTest : MonoBehaviour {
 	public static bool useSamples;
 	//Check the Midi's file folder for different songs
 	public string midiFilePath = "Midis/Groove.mid";
-	//Try also: "FM Bank/fm" or "Analog Bank/analog" for some different sounds
-	public string bankFilePath = "GM Bank/gm";
+	//Try also: "FM Bank/fm" or "Analog Bank/analog" for some different sounds "GM Bank/gm"
+	public string bankFilePath = "FM Bank/fm";
 	public int bufferSize = 1024;
 	public int midiNote = 60;
 	public int midiNoteVolume = 100;
@@ -31,12 +31,10 @@ public class UnitySynthTest : MonoBehaviour {
 
 
 	// Tuugas variables
-	public Canvas canvas;
-	GraphicRaycaster caster;
-
 	bool[] playNote = new bool[127];
 	bool[] stopNote = new bool[127];
 
+	public float noteOffTime;
 	public GameObject[] keys = new GameObject[127];
 	public AudioSource[] midiSamples = new AudioSource[127];
 	public string[] midiSongs;
@@ -57,17 +55,10 @@ public class UnitySynthTest : MonoBehaviour {
 	}
 
 	void Start () {
-		caster = canvas.GetComponent<GraphicRaycaster>();
+		
 	}
 
 	void Update() {
-
-		// RAYCASTING
-
-		// https://www.google.fi/search?q=EventSystem.current.RaycastAll&rlz=1C1CHZL_enFI703FI703&oq=EventSystem.current.RaycastAll&aqs=chrome..69i57.355j0j4&sourceid=chrome&ie=UTF-8
-		//if (EventSystem.current.RaycastAll( ) {
-
-		//}
 
 		for (int i = 0; i < midiSamples.Length; i++) {
 
@@ -120,6 +111,12 @@ public class UnitySynthTest : MonoBehaviour {
 		MidiNoteOnHandler(1, note, midiNoteVolume);
 
 		midiSamples[note].Play();
+	}
+
+	
+	public void OnNoteOff(int note) {
+		midiStreamSynthesizer.NoteOff(1, note);
+		MidiNoteOffHandler(1, note);
 		
 		StartCoroutine(StopNote(note));
 	}
@@ -127,16 +124,18 @@ public class UnitySynthTest : MonoBehaviour {
 	// Called from OnNote
 	// Stops the note after yield time
 	IEnumerator StopNote(int note) {
-		yield return new WaitForSeconds(0.5f);
-		midiStreamSynthesizer.NoteOff(1, note);
-		MidiNoteOffHandler(1, note);
+		float time = noteOffTime;
+		while (time > 0) {
+			time -= Time.deltaTime;
+			midiSamples[note].volume -= Time.deltaTime / noteOffTime;
+			//yield return new WaitForSeconds(noteOffTime);
+			yield return new WaitForEndOfFrame();
+		}
 
+		//midiStreamSynthesizer.NoteOff(1, note);
+		//MidiNoteOffHandler(1, note);
 		midiSamples[note].Stop();
-	}
-
-	IEnumerator PrintLate(int note) {
-		yield return new WaitForSeconds(5f);
-		print(note);
+		midiSamples[note].volume = 1f;
 	}
 
 	public void PlaySong() {
