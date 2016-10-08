@@ -15,7 +15,7 @@ public class UnitySynthTest : MonoBehaviour {
 	//Check the Midi's file folder for different songs
 	public string midiFilePath = "Midis/Groove.mid";
 	//Try also: "FM Bank/fm" or "Analog Bank/analog" for some different sounds "GM Bank/gm"
-	public string bankFilePath = "FM Bank/fm";
+	public string bankFilePath = "Analog Bank/analog";
 	public int bufferSize = 1024;
 	public int midiNote = 60;
 	public int midiNoteVolume = 100;
@@ -87,13 +87,13 @@ public class UnitySynthTest : MonoBehaviour {
 	private void OnAudioFilterRead(float[] data, int channels) {
 
 		//This uses the Unity specific float method we added to get the buffer
-		midiStreamSynthesizer.GetNext(sampleBuffer);
+		//midiStreamSynthesizer.GetNext(sampleBuffer);
 
 		// Plays midi data
 		if (!useSamples) {
-			for (int i = 0; i < data.Length; i++) {
-				data[i] = sampleBuffer[i] * gain;
-			}
+			//for (int i = 0; i < data.Length; i++) {
+				//data[i] = sampleBuffer[i] * gain;
+			//}
 		}
 	}
 
