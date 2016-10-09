@@ -1,26 +1,31 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 public class NoteObject : MonoBehaviour {
 
+	public Rigidbody2D naama;
 	public Rigidbody2D[] lehdet;
 	public float force;
+	public float maxTorque;
 
-	Rigidbody2D rb;
+	bool pressed;
 
-	void Start () {
-		rb = GetComponent<Rigidbody2D>();
+	public bool IsPressed () {
+		return pressed;
 	}
 
 	public void BreakFlower () {
-		rb.isKinematic = false;
+		naama.isKinematic = false;
 
 		Vector2 dir = new Vector2(0, 1);
 		for (int i = 0; i < lehdet.Length; i++) {
 			lehdet[i].isKinematic = false;
 			lehdet[i].AddForce(dir * force, ForceMode2D.Impulse);
-			dir = Quaternion.Euler(0, 0, -360 / lehdet.Length) * dir;
-		}
+			lehdet[i].AddTorque(Random.Range(-maxTorque, maxTorque), ForceMode2D.Impulse);
 
+			dir = Quaternion.Euler(0, 0, -360 / lehdet.Length) * dir;
+			pressed = true;
+		}
 	}
 }

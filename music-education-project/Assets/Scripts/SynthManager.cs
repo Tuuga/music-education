@@ -6,33 +6,26 @@ using CSharpSynth.Sequencer;
 using CSharpSynth.Synthesis;
 using CSharpSynth.Midi;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(AudioSource))]
-public class UnitySynthTest : MonoBehaviour {
-	//Public
-	public static bool useSamples;
-	//Check the Midi's file folder for different songs
+public class SynthManager : MonoBehaviour {
+
 	public string midiFilePath = "Midis/Groove.mid";
 	//Try also: "FM Bank/fm" or "Analog Bank/analog" for some different sounds "GM Bank/gm"
-	public string bankFilePath = "Analog Bank/analog";
+	public string bankFilePath = "GM Bank/gm";
 	public int bufferSize = 1024;
-	public int midiNote = 60;
-	public int midiNoteVolume = 100;
-	public int midiInstrument = 1;
-	//Private 
 	float[] sampleBuffer;
-	float gain = 1f;
 	MidiSequencer midiSequencer;
 	StreamSynthesizer midiStreamSynthesizer;
-
-	private float sliderValue = 1.0f;
-	private float maxSliderValue = 127.0f;
 
 
 	// Tuugas variables
 	bool[] playNote = new bool[127];
 	bool[] stopNote = new bool[127];
+
+	public bool spawnFlowers;
+	public FlowerSpawner spawner;
 
 	public float noteOffTime;
 	public GameObject[] keys = new GameObject[127];
@@ -54,30 +47,27 @@ public class UnitySynthTest : MonoBehaviour {
 		ChangeSong(0);
 	}
 
-	void Start () {
-		
-	}
-
 	void Update() {
 
 		for (int i = 0; i < midiSamples.Length; i++) {
 
-			if (stopNote[i] && keys[i] != null) {
+			if (stopNote[i]) {
 				stopNote[i] = false;
-
-				if (keys[i].name.Contains("#")) {
-					// turns the note black
-					keys[i].GetComponent<Image>().color = Color.black;
-				} else {
-					// turns the note white
+				if (keys[i] != null && !spawnFlowers) {
 					keys[i].GetComponent<Image>().color = Color.white;
-				}
+				}				
 			}
 
-			if (playNote[i] && keys[i] != null) {
+			if (playNote[i]) {
 				playNote[i] = false;
-				// turns the note yellow
-				keys[i].GetComponent<Image>().color = Color.yellow;
+				if (keys[i] != null && !spawnFlowers) {
+					// turns the note yellow
+					keys[i].GetComponent<Image>().color = Color.yellow;
+				}
+
+				if (spawnFlowers) {
+					spawner.SpawnFlower(i);
+				}
 			}
 		}
 	}
@@ -85,20 +75,11 @@ public class UnitySynthTest : MonoBehaviour {
 	// See http://unity3d.com/support/documentation/ScriptReference/MonoBehaviour.OnAudioFilterRead.html for reference code
 
 	private void OnAudioFilterRead(float[] data, int channels) {
-
-		//This uses the Unity specific float method we added to get the buffer
-		//midiStreamSynthesizer.GetNext(sampleBuffer);
-
-		// Plays midi data
-		if (!useSamples) {
-			//for (int i = 0; i < data.Length; i++) {
-				//data[i] = sampleBuffer[i] * gain;
-			//}
-		}
+		midiStreamSynthesizer.GetNext(sampleBuffer);
 	}
 
 	public void MidiNoteOnHandler(int channel, int note, int velocity) {
-		playNote[note] = true;	
+		playNote[note] = true;
 	}
 
 	public void MidiNoteOffHandler(int channel, int note) {
@@ -107,33 +88,24 @@ public class UnitySynthTest : MonoBehaviour {
 
 	// Called from UI buttons
 	public void OnNote(int note) {
-		midiStreamSynthesizer.NoteOn(1, note, midiNoteVolume, midiInstrument);
-		MidiNoteOnHandler(1, note, midiNoteVolume);
-
-		midiSamples[note].Play();
+		if (midiSamples[note] != null) {
+			midiSamples[note].Play();
+		}
 	}
 
 	
-	public void OnNoteOff(int note) {
-		midiStreamSynthesizer.NoteOff(1, note);
-		MidiNoteOffHandler(1, note);
-		
+	public void OnNoteOff(int note) {		
 		StartCoroutine(StopNote(note));
 	}
 
-	// Called from OnNote
-	// Stops the note after yield time
 	IEnumerator StopNote(int note) {
 		float time = noteOffTime;
 		while (time > 0) {
 			time -= Time.deltaTime;
 			midiSamples[note].volume -= Time.deltaTime / noteOffTime;
-			//yield return new WaitForSeconds(noteOffTime);
 			yield return new WaitForEndOfFrame();
 		}
 
-		//midiStreamSynthesizer.NoteOff(1, note);
-		//MidiNoteOffHandler(1, note);
 		midiSamples[note].Stop();
 		midiSamples[note].volume = 1f;
 	}
@@ -141,6 +113,7 @@ public class UnitySynthTest : MonoBehaviour {
 	public void PlaySong() {
 		midiSequencer.LoadMidi(midiFilePath, false);
 		midiSequencer.Play();
+		print("Play");
 	}
 
 	public void StopSong() {
@@ -152,8 +125,8 @@ public class UnitySynthTest : MonoBehaviour {
 		}
 	}
 
-	public void ToggleUseSamples () {
-		useSamples = !useSamples;
+	public void RestartScene () {
+		SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 	}
 
 	public void ChangeSong (int n) {
