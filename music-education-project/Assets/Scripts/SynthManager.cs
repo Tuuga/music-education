@@ -54,8 +54,10 @@ public class SynthManager : MonoBehaviour {
 
 	void Update() {
 
-		if (useRandomSong && !midiSequencer.isPlaying) {
-			print("Song ended");
+		// End of song
+		if (useRandomSong && !midiSequencer.isPlaying && 
+			GameObject.FindGameObjectsWithTag("Flower").Length == 0) {
+			SceneManager.LoadScene(0);
 		}
 
 		for (int i = 0; i < midiSamples.Length; i++) {
@@ -63,7 +65,7 @@ public class SynthManager : MonoBehaviour {
 				stopNote[i] = false;
 				if (keys[i] != null && !spawnFlowers) {
 					keys[i].GetComponent<Image>().color = Color.white;
-				}				
+				}
 			}
 
 			if (playNote[i]) {
@@ -89,9 +91,13 @@ public class SynthManager : MonoBehaviour {
 	public void MidiNoteOnHandler(int channel, int note, int velocity) {
 		playNote[note] = true;
 	}
-
 	public void MidiNoteOffHandler(int channel, int note) {
 		stopNote[note] = true;
+	}
+
+	// For other scripts
+	public void PlayNote (int note) {
+		playNote[note] = true;
 	}
 
 	// Called from UI buttons
@@ -147,7 +153,7 @@ public class SynthManager : MonoBehaviour {
 
 	public void PlayRandomSong () {
 		StopSong();
-		int index = Random.Range(0, midiSongs.Length - 1);
+		int index = Random.Range(0, midiSongs.Length);
 
 		midiFilePath = "Midis/" + midiSongs[index];
 		currentSong.text = midiSongs[index];

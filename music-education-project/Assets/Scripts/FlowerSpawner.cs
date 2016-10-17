@@ -24,11 +24,15 @@ public class FlowerSpawner : MonoBehaviour {
 	float xRange;
 
 	void Start () {
+		synthMain = Camera.main.GetComponent<SynthManager>();
+		if (!synthMain.spawnFlowers) {
+			return;
+		}
+
 		flowers = new List<GameObject>();
 		flowerSpawnTime = new List<float>();
 		notesOrder = new List<int>();
 
-		synthMain = Camera.main.GetComponent<SynthManager>();
 
 		xRange = endPoint.position.x - startPoint.position.x;
 		noteRange = endNote - startNote;
@@ -60,6 +64,10 @@ public class FlowerSpawner : MonoBehaviour {
 		}
 	}
 
+	public int GetFlowersCount () {
+		return flowers.Count;
+	}
+
 	public IEnumerator SetNextFlowerActive () {
 		float timer;
 		if (flowerSpawnTime.Count > 1) {
@@ -73,13 +81,11 @@ public class FlowerSpawner : MonoBehaviour {
 		flowers[0].SetActive(true);
 
 		if (synthMain.keys[notesOrder[0]] != null) {
-			print(synthMain.keys[notesOrder[0]].name + " White");
 			synthMain.keys[notesOrder[0]].GetComponent<Image>().color = Color.white;
 		}
 		notesOrder.RemoveAt(0);
 
 		if (synthMain.keys[notesOrder[0]] != null) {
-			print(synthMain.keys[notesOrder[0]].name + " Yellow");
 			synthMain.keys[notesOrder[0]].GetComponent<Image>().color = Color.yellow;
 		}
 	}
