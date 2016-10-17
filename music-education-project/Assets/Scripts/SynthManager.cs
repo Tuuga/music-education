@@ -25,6 +25,7 @@ public class SynthManager : MonoBehaviour {
 	bool[] stopNote = new bool[127];
 
 	public bool spawnFlowers;
+	public bool useRandomSong;
 	public FlowerSpawner spawner;
 
 	public float noteOffTime;
@@ -45,12 +46,19 @@ public class SynthManager : MonoBehaviour {
 		midiSequencer.NoteOnEvent += new MidiSequencer.NoteOnEventHandler(MidiNoteOnHandler);
 		midiSequencer.NoteOffEvent += new MidiSequencer.NoteOffEventHandler(MidiNoteOffHandler);
 		ChangeSong(0);
+
+		if (useRandomSong) {
+			PlayRandomSong();
+		}
 	}
 
 	void Update() {
 
-		for (int i = 0; i < midiSamples.Length; i++) {
+		if (useRandomSong && !midiSequencer.isPlaying) {
+			print("Song ended");
+		}
 
+		for (int i = 0; i < midiSamples.Length; i++) {
 			if (stopNote[i]) {
 				stopNote[i] = false;
 				if (keys[i] != null && !spawnFlowers) {
@@ -92,9 +100,8 @@ public class SynthManager : MonoBehaviour {
 			midiSamples[note].Play();
 		}
 	}
-
 	
-	public void OnNoteOff(int note) {		
+	public void OnNoteOff(int note) {
 		StartCoroutine(StopNote(note));
 	}
 
@@ -136,5 +143,16 @@ public class SynthManager : MonoBehaviour {
 		currentSong.text = midiSongs[songsIndex];
 
 		StopSong();
+	}
+
+	public void PlayRandomSong () {
+		StopSong();
+		int index = Random.Range(0, midiSongs.Length - 1);
+
+		midiFilePath = "Midis/" + midiSongs[index];
+		currentSong.text = midiSongs[index];
+
+		midiSequencer.LoadMidi(midiFilePath, false);
+		midiSequencer.Play();
 	}
 }
