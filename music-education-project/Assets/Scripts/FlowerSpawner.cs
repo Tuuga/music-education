@@ -36,13 +36,6 @@ public class FlowerSpawner : MonoBehaviour {
 
 		xRange = endPoint.position.x - startPoint.position.x;
 		noteRange = endNote - startNote;
-
-		// Debug
-		//for (int i = 0; i <= noteRange; i++) {
-		//	GameObject flowerIns = (GameObject)Instantiate(flower, canvas);
-		//	flowerIns.transform.position = new Vector3(startPoint.position.x + ((xRange / noteRange) * i), 200f, 0);
-
-		//}
 	}
 
 	public void SpawnFlower (int note) {
@@ -52,7 +45,7 @@ public class FlowerSpawner : MonoBehaviour {
 		var xPos = startPoint.position.x + ((xRange / noteRange) * (note - startNote));
 		xPos = Mathf.Clamp(xPos, 0, Screen.width);
 
-		flowerIns.transform.position = new Vector3(xPos, 200f);
+		flowerIns.transform.position = new Vector3(xPos, -20f);
 		
 
 		flowers.Add(flowerIns);

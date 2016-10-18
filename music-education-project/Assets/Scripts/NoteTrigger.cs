@@ -4,12 +4,23 @@ using System.Collections;
 
 public class NoteTrigger : EventTrigger {
 	int note;
+	bool animDone;
+
+	void Start () {
+		StartCoroutine(SetAnimDone());
+	}
+
+	IEnumerator SetAnimDone () {
+		yield return new WaitForSeconds(1.8f);
+		animDone = true;
+	}
 
 	public void SetNote(int n) {
 		note = n;
 	}
 
 	public override void OnPointerDown(PointerEventData data) {
+		if (!animDone) { return; }
 
 		var spawner = GameObject.Find("FlowerSpawner").GetComponent<FlowerSpawner>();
 
