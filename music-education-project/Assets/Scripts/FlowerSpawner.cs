@@ -47,7 +47,6 @@ public class FlowerSpawner : MonoBehaviour {
 
 	public static void OneLessFlower () {
 		flowersLeft--;
-		print(flowersLeft);
 	}
 
 	public void SpawnFlower (int note) {
