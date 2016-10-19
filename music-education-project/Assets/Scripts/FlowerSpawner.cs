@@ -23,6 +23,8 @@ public class FlowerSpawner : MonoBehaviour {
 	int noteRange;
 	float xRange;
 
+	static int flowersLeft;
+
 	void Start () {
 		synthMain = Camera.main.GetComponent<SynthManager>();
 		if (!synthMain.spawnFlowers) {
@@ -39,7 +41,12 @@ public class FlowerSpawner : MonoBehaviour {
 
 	}
 
+	public static int GetFlowersLeft () {
+		return flowersLeft;
+	}
+
 	public void SpawnFlower (int note) {
+		flowersLeft++;
 		GameObject flowerIns = (GameObject)Instantiate(flower, canvas);
 		flowerIns.GetComponent<NoteTrigger>().SetNote(note);
 
@@ -59,10 +66,11 @@ public class FlowerSpawner : MonoBehaviour {
 	}
 
 	public int GetFlowersCount () {
-		return flowers.Count;
+		return flowersLeft;
 	}
 
 	public IEnumerator SetNextFlowerActive () {
+		flowersLeft--;
 		float timer;
 		if (flowerSpawnTime.Count > 1) {
 			timer = flowerSpawnTime[1] - flowerSpawnTime[0];
