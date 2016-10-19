@@ -59,7 +59,7 @@ public class SynthManager : MonoBehaviour {
 	void Update() {
 
 		// End of song
-		if (useRandomSong && !midiSequencer.isPlaying && !fc.GetRunning() && FlowerSpawner.GetFlowersLeft() <= 0) {
+		if (useRandomSong && !midiSequencer.isPlaying && !fc.GetRunning() && (FlowerSpawner.GetFlowersLeft() <= 0 || !spawnFlowers)) {
 			fc.EndScenarioStart();
 		}
 

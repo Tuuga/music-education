@@ -19,6 +19,8 @@ public class NoteObject : MonoBehaviour {
 	}
 
 	public void BreakFlower () {
+		Fabric.EventManager.Instance.PostEvent("Sfx/Flower/Hit");
+		FlowerSpawner.OneLessFlower();
 		GetComponent<Animator>().enabled = false;
 		naama.isKinematic = false;
 		pressed = true;

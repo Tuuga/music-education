@@ -45,6 +45,11 @@ public class FlowerSpawner : MonoBehaviour {
 		return flowersLeft;
 	}
 
+	public static void OneLessFlower () {
+		flowersLeft--;
+		print(flowersLeft);
+	}
+
 	public void SpawnFlower (int note) {
 		flowersLeft++;
 		GameObject flowerIns = (GameObject)Instantiate(flower, canvas);
@@ -65,12 +70,7 @@ public class FlowerSpawner : MonoBehaviour {
 		}
 	}
 
-	public int GetFlowersCount () {
-		return flowersLeft;
-	}
-
 	public IEnumerator SetNextFlowerActive () {
-		flowersLeft--;
 		float timer;
 		if (flowerSpawnTime.Count > 1) {
 			timer = flowerSpawnTime[1] - flowerSpawnTime[0];
@@ -81,6 +81,7 @@ public class FlowerSpawner : MonoBehaviour {
 		yield return new WaitForSeconds(timer);
 		flowerSpawnTime.RemoveAt(0);
 		flowers[0].SetActive(true);
+		Fabric.EventManager.Instance.PostEvent("Sfx/Flower/Spawn");
 
 		if (synthMain.keys[notesOrder[0]] != null) {
 			synthMain.keys[notesOrder[0]].GetComponent<Image>().color = Color.white;
