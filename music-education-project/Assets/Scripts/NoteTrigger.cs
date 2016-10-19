@@ -10,12 +10,12 @@ public class NoteTrigger : EventTrigger {
 		note = n;
 	}
 
-	void Start () {
-		StartCoroutine(SetAnimDone());
+	public void SetAnim (float time) {
+		StartCoroutine(SetAnimDone(time));
 	}
 
-	IEnumerator SetAnimDone () {
-		yield return new WaitForSeconds(1.8f);
+	IEnumerator SetAnimDone (float time) {
+		yield return new WaitForSeconds(time);
 		animDone = true;
 	}
 

@@ -11,8 +11,13 @@ public class NoteObject : MonoBehaviour {
 	public Sprite[] altFaces;
 	public float force;
 	public float maxTorque;
+	public float animationTime;
 
 	bool pressed;
+
+	void Start () {
+		GetComponent<NoteTrigger>().SetAnim(animationTime);
+	}
 
 	public bool IsPressed () {
 		return pressed;
