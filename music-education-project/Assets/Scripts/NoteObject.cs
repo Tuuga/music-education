@@ -6,26 +6,33 @@ using UnityEngine.UI;
 public class NoteObject : MonoBehaviour {
 
 	public Rigidbody2D naama;
-	public Sprite[] altFaces;
 	public Rigidbody2D[] lehdet;
 	public Rigidbody2D[] varret;
+	public Sprite[] altFaces;
 	public float force;
 	public float maxTorque;
+	public float animationTime;
 
 	bool pressed;
+
+	void Start () {
+		GetComponent<NoteTrigger>().SetAnim(animationTime);
+	}
 
 	public bool IsPressed () {
 		return pressed;
 	}
 
 	public void BreakFlower () {
+		Fabric.EventManager.Instance.PostEvent("Sfx/Flower/Hit");
+		FlowerSpawner.OneLessFlower();
+		GetComponent<Animator>().enabled = false;
+		naama.isKinematic = false;
+		pressed = true;
 
 		int index = Random.Range(0, altFaces.Length);
 		naama.GetComponent<Image>().sprite = altFaces[index];
 
-		naama.isKinematic = false;
-		GetComponent<Animator>().enabled = false;
-		pressed = true;
 
 		Vector2 dir = new Vector2(0, 1);
 		for (int i = 0; i < lehdet.Length; i++) {

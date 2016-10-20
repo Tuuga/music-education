@@ -23,6 +23,8 @@ public class FlowerSpawner : MonoBehaviour {
 	int noteRange;
 	float xRange;
 
+	static int flowersLeft;
+
 	void Start () {
 		synthMain = Camera.main.GetComponent<SynthManager>();
 		if (!synthMain.spawnFlowers) {
@@ -36,16 +38,26 @@ public class FlowerSpawner : MonoBehaviour {
 
 		xRange = endPoint.position.x - startPoint.position.x;
 		noteRange = endNote - startNote;
+
+	}
+
+	public static int GetFlowersLeft () {
+		return flowersLeft;
+	}
+
+	public static void OneLessFlower () {
+		flowersLeft--;
 	}
 
 	public void SpawnFlower (int note) {
+		flowersLeft++;
 		GameObject flowerIns = (GameObject)Instantiate(flower, canvas);
 		flowerIns.GetComponent<NoteTrigger>().SetNote(note);
 
 		var xPos = startPoint.position.x + ((xRange / noteRange) * (note - startNote));
 		xPos = Mathf.Clamp(xPos, 0, Screen.width);
 
-		flowerIns.transform.position = new Vector3(xPos, -20f);
+		flowerIns.transform.position = new Vector3(xPos, 0);
 		
 
 		flowers.Add(flowerIns);
@@ -55,10 +67,6 @@ public class FlowerSpawner : MonoBehaviour {
 		if (flowers.Count > 1) {
 			flowerIns.SetActive(false);
 		}
-	}
-
-	public int GetFlowersCount () {
-		return flowers.Count;
 	}
 
 	public IEnumerator SetNextFlowerActive () {
@@ -72,6 +80,7 @@ public class FlowerSpawner : MonoBehaviour {
 		yield return new WaitForSeconds(timer);
 		flowerSpawnTime.RemoveAt(0);
 		flowers[0].SetActive(true);
+		Fabric.EventManager.Instance.PostEvent("Sfx/Flower/Spawn");
 
 		if (synthMain.keys[notesOrder[0]] != null) {
 			synthMain.keys[notesOrder[0]].GetComponent<Image>().color = Color.white;

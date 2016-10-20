@@ -36,6 +36,8 @@ public class SynthManager : MonoBehaviour {
 	public Text currentSong;
 	int songsIndex;
 
+	FinalScenario fc;
+
 	void Awake() {
 		midiStreamSynthesizer = new StreamSynthesizer(44100, 2, bufferSize, 40);
 		sampleBuffer = new float[midiStreamSynthesizer.BufferSize];
@@ -47,6 +49,8 @@ public class SynthManager : MonoBehaviour {
 		midiSequencer.NoteOffEvent += new MidiSequencer.NoteOffEventHandler(MidiNoteOffHandler);
 		ChangeSong(0);
 
+		fc = GameObject.Find("FinalScenario").GetComponent<FinalScenario>();
+
 		if (useRandomSong) {
 			PlayRandomSong();
 		}
@@ -55,8 +59,11 @@ public class SynthManager : MonoBehaviour {
 	void Update() {
 
 		// End of song
-		if (useRandomSong && !midiSequencer.isPlaying && 
-			GameObject.FindGameObjectsWithTag("Flower").Length == 0) {
+		if (useRandomSong && !midiSequencer.isPlaying && !fc.GetRunning() && (FlowerSpawner.GetFlowersLeft() <= 0 || !spawnFlowers)) {
+			fc.EndScenarioStart();
+		}
+
+		if (GameObject.FindGameObjectsWithTag("Flower").Length == 0 && fc.GetEndDone()) {
 			SceneManager.LoadScene(0);
 		}
 

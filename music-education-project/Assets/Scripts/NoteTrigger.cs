@@ -6,17 +6,17 @@ public class NoteTrigger : EventTrigger {
 	int note;
 	bool animDone;
 
-	void Start () {
-		StartCoroutine(SetAnimDone());
-	}
-
-	IEnumerator SetAnimDone () {
-		yield return new WaitForSeconds(1.8f);
-		animDone = true;
-	}
-
 	public void SetNote(int n) {
 		note = n;
+	}
+
+	public void SetAnim (float time) {
+		StartCoroutine(SetAnimDone(time));
+	}
+
+	IEnumerator SetAnimDone (float time) {
+		yield return new WaitForSeconds(time);
+		animDone = true;
 	}
 
 	public override void OnPointerDown(PointerEventData data) {
